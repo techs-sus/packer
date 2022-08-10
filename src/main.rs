@@ -121,6 +121,10 @@ fn compile(code: &str) -> String {
 	full_moon::print(&visitor.visit_ast(ast))
 }
 
+fn start_development_server() {
+	todo!("sorry, development server is not implemented yet :(");
+}
+
 fn main() -> Result<(), String> {
 	let args = Arguments::parse();
 	if let Action::Build = args.action {
@@ -145,7 +149,8 @@ fn main() -> Result<(), String> {
 		fs::write(out_file, compiled).expect("File not writeable by OS");
 		println!("Finished building!\nout_file: {}", out_file);
 	} else if let Action::Dev = args.action {
-		eprintln!("dev is not implemented yet");
+		start_development_server();
+		// eprintln!("dev is not implemented yet");
 	}
 	Ok(())
 }
