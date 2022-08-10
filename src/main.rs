@@ -1,3 +1,4 @@
+use clap::Parser;
 use full_moon::{
     ast::{punctuated::Pair, Call, Expression, FunctionArgs, FunctionCall, Prefix, Suffix, Value},
     tokenizer::{StringLiteralQuoteType, Symbol, Token, TokenReference, TokenType},
@@ -6,6 +7,19 @@ use full_moon::{
 };
 use std::default::Default;
 
+#[derive(clap::Parser)]
+struct Arguments {
+    #[clap(subcommand)]
+    action: Action,
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum Action {
+    /// Build a project with packer.toml
+    Build,
+    /// todo: not ready yet
+    Dev,
+}
 #[derive(Default)]
 struct FunctionCallVisitor {}
 
@@ -31,7 +45,6 @@ impl VisitorMut for FunctionCallVisitor {
     fn visit_function_call(&mut self, node: FunctionCall) -> FunctionCall {
         let prefix = node.prefix().to_string();
         if prefix == "import" || prefix == "nls_import" {
-            println!("bundling fcall! Type: {}", prefix);
             let suffix = node.suffixes().cloned().collect::<Vec<Suffix>>().pop();
             if let Some(Suffix::Call(Call::AnonymousCall(function_args))) = suffix {
                 let left_paren = Token::new(TokenType::Symbol {
@@ -103,12 +116,33 @@ impl VisitorMut for FunctionCallVisitor {
     }
 }
 
-fn ye(code: &str) -> std::string::String {
+fn ye(code: &str) -> String {
     let ast = full_moon::parse(code).expect("pls pass valid code");
     let mut visitor = FunctionCallVisitor::default();
     full_moon::print(&visitor.visit_ast(ast))
 }
 
 fn main() {
-    println!("{}", ye("local x = 1; print(x); nls_import('hehe.lua')"))
+    let args = Arguments::parse();
+    if let Action::Build = args.action {
+        let sus3: String = String::from_utf8_lossy(
+            &std::fs::read("./packer.toml").expect("File not readable by OS"),
+        )
+        .to_string();
+        let value = sus3.parse::<toml::Value>().unwrap();
+
+        let main = String::from_utf8_lossy(
+            &std::fs::read(value["main"].as_str().unwrap()).expect("File not readable by OS"),
+        )
+        .to_string();
+        let compiled = ye(&main);
+        std::fs::write(value["out_file"].as_str().unwrap(), compiled)
+            .expect("File not readable by OS");
+        println!(
+            "Finished building!\nout_file: {}",
+            value["out_file"].as_str().unwrap()
+        );
+    } else if let Action::Dev = args.action {
+        eprintln!("dev is not implemented yet");
+    }
 }

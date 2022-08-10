@@ -1,0 +1,3 @@
+# example packer.toml
+out_file = "./target/hehe.lua"
+main = "./hehe.lua"
