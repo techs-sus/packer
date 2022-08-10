@@ -72,7 +72,7 @@ impl VisitorMut for FunctionCallVisitor {
                                 }),
                             ],
                             Token::new(TokenType::Identifier {
-                                identifier: ShortString::new(ye(&code)), // resolved code goes here
+                                identifier: ShortString::new(compile(&code)), // resolved code goes here
                             }),
                             vec![
                                 Token::new(TokenType::Symbol {
@@ -94,7 +94,7 @@ impl VisitorMut for FunctionCallVisitor {
                                 left_paren,
                             ],
                             Token::new(TokenType::StringLiteral {
-                                literal: ShortString::new(ye(&code)),
+                                literal: ShortString::new(compile(&code)),
                                 multi_line: Some(2),
                                 quote_type: StringLiteralQuoteType::Brackets,
                             }),
@@ -116,7 +116,7 @@ impl VisitorMut for FunctionCallVisitor {
     }
 }
 
-fn ye(code: &str) -> String {
+fn compile(code: &str) -> String {
     let ast = full_moon::parse(code).expect("pls pass valid code");
     let mut visitor = FunctionCallVisitor::default();
     full_moon::print(&visitor.visit_ast(ast))
@@ -135,7 +135,7 @@ fn main() {
             &std::fs::read(value["main"].as_str().unwrap()).expect("File not readable by OS"),
         )
         .to_string();
-        let compiled = ye(&main);
+        let compiled = compile(&main);
         std::fs::write(value["out_file"].as_str().unwrap(), compiled)
             .expect("File not readable by OS");
         println!(
